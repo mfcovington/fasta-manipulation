@@ -34,7 +34,7 @@ sub get_nt_freqs {
         tr/acgtn/ACGTN/;
         my @seq = unpack "(A1)*";
         for my $i ( 0 .. $#seq ) {
-            $nt_freqs{$i}{ $seq[$i] }++;
+            $nt_freqs{ $seq[$i] }{$i}++;
         }
     }
     close $fasta_fh;
@@ -44,19 +44,12 @@ sub get_nt_freqs {
 
 p $nt_freqs;
 
-my @nts = qw(A C G T);
-my %out;
-for my $i ( sort { $a <=> $b } keys $nt_freqs ) {
-    # say $nt_freqs{$i};
-
-    # my $total =+
-
-    push @{$out{$_}}, $$nt_freqs{$i}{$_} for @nts;
-
-}
-
 my @r_cmd;
-push @r_cmd, "$_ <- c(", join( ", ", @{$out{$_}}), ")\n" for keys %out;
+for my $nt (qw( A C G T )) {
+    my @freqs
+        = map { $$nt_freqs{$nt}{$_} } sort { $a <=> $b } keys $$nt_freqs{$nt};
+    push @r_cmd, "$nt <- c(", join( ", ", @freqs), ")\n";
+}
 print @r_cmd;
 
 
