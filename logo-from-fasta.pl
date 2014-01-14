@@ -10,6 +10,11 @@ use autodie;
 use feature 'say';
 use Statistics::R;
 
+#TODO: GetOptions
+#TODO: Add options for png, ic.scale = FALSE, xaxis = FALSE, and width/height
+#TODO: Fill in missing values with 0
+#TODO: Verify that all sequences are equal length
+
 my $base_dir = "/Users/mfc/git.repos/extract-seq-flanking-read/runs/out";
 my $fasta_file = $ARGV[0] || "$base_dir/subset.200.fa";
 
