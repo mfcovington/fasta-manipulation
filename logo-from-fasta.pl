@@ -21,30 +21,37 @@ my $base_dir = "/Users/mfc/git.repos/extract-seq-flanking-read/runs/out";
 # my $fasta_file = "$base_dir/subset.fa";
 my $fasta_file = "$base_dir/subset.200.fa";
 
-my %nt_freqs;
+my $nt_freqs = get_nt_freqs($fasta_file);
 
-open my $fasta_fh, "<", $fasta_file;
-while (<$fasta_fh>) {
-    next if /^>/;
-    chomp;
-    tr/acgtn/ACGTN/;
-    my @seq = unpack "(A1)*";
-    for my $i ( 0 .. $#seq ) {
-        $nt_freqs{$i}{ $seq[$i] }++;
+sub get_nt_freqs {
+    my $fasta_file = shift;
+    my %nt_freqs;
+
+    open my $fasta_fh, "<", $fasta_file;
+    while (<$fasta_fh>) {
+        next if /^>/;
+        chomp;
+        tr/acgtn/ACGTN/;
+        my @seq = unpack "(A1)*";
+        for my $i ( 0 .. $#seq ) {
+            $nt_freqs{$i}{ $seq[$i] }++;
+        }
     }
-}
-close $fasta_fh;
+    close $fasta_fh;
 
-p %nt_freqs;
+    return \%nt_freqs;
+}
+
+p $nt_freqs;
 
 my @nts = qw(A C G T);
 my %out;
-for my $i ( sort { $a <=> $b } keys %nt_freqs ) {
+for my $i ( sort { $a <=> $b } keys $nt_freqs ) {
     # say $nt_freqs{$i};
 
     # my $total =+
 
-    push @{$out{$_}}, $nt_freqs{$i}{$_} for @nts;
+    push @{$out{$_}}, $$nt_freqs{$i}{$_} for @nts;
 
 }
 
