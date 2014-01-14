@@ -58,7 +58,13 @@ sub build_nt_vectors {
 
 print @$nt_vectors;
 
-my $build_pwm = <<EOF;
+seqlogo($nt_vectors);
+
+sub seqlogo {
+    my $nt_vectors = shift;
+
+
+    my $build_pwm = <<EOF;
 # Adapted from http://davetang.org/muse/2013/01/30/sequence-logos-with-r/
 
 library(seqLogo)
@@ -76,16 +82,17 @@ pwm <- apply(df, 1, proportion)
 pwm <- makePWM(pwm)
 EOF
 
-my ($base_name) = $fasta_file =~ m|([^/]+).fa(?:sta)?$|i;
-my $filetype = "pdf";
+    my ($base_name) = $fasta_file =~ m|([^/]+).fa(?:sta)?$|i;
+    my $filetype = "pdf";
 
-my $write_logo = <<EOF;
+    my $write_logo = <<EOF;
 $filetype("$base_name.$filetype")
 seqLogo(pwm)
 dev.off()
 EOF
 
-my $R = Statistics::R->new();
-$R->run($build_pwm);
-$R->run($write_logo);
-$R->stop();
+    my $R = Statistics::R->new();
+    $R->run($build_pwm);
+    $R->run($write_logo);
+    $R->stop();
+}
