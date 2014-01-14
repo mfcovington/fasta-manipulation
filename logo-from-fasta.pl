@@ -8,20 +8,19 @@ use strict;
 use warnings;
 use autodie;
 use feature 'say';
-use Data::Printer;
 use Statistics::R;
 
 my $base_dir = "/Users/mfc/git.repos/extract-seq-flanking-read/runs/out";
-# my $fasta_file = "$base_dir/A4_I1_5p14_sorted.10bp-upstream.fa";
-# my $fasta_file = "$base_dir/A4_I1_5p14_sorted.100bp-upstream.fa";
-# my $fasta_file = "$base_dir/phys_pifs.cdna.M82.hit.sorted.50bp-upstream.fa";
-# my $fasta_file = "$base_dir/M82.Sh.veg.fa";
-# my $fasta_file = "$base_dir/200.fa";
-# my $fasta_file = "$base_dir/10000.fa";
-# my $fasta_file = "$base_dir/subset.fa";
-my $fasta_file = "$base_dir/subset.200.fa";
+my $fasta_file = $ARGV[0] || "$base_dir/subset.200.fa";
 
-my $nt_freqs = get_nt_freqs($fasta_file);
+my ($base_name) = $fasta_file =~ m|([^/]+).fa(?:sta)?$|i;
+my $filetype = "pdf";
+
+my $nt_freqs   = get_nt_freqs($fasta_file);
+my $nt_vectors = build_nt_vectors($nt_freqs);
+seqlogo( $nt_vectors, $base_name, $filetype );
+
+exit;
 
 sub get_nt_freqs {
     my $fasta_file = shift;
@@ -42,10 +41,6 @@ sub get_nt_freqs {
     return \%nt_freqs;
 }
 
-p $nt_freqs;
-
-my $nt_vectors = build_nt_vectors($nt_freqs);
-
 sub build_nt_vectors {
     my @nt_vectors;
     for my $nt (qw( A C G T )) {
@@ -56,13 +51,8 @@ sub build_nt_vectors {
     return \@nt_vectors;
 }
 
-print @$nt_vectors;
-
-seqlogo($nt_vectors);
-
 sub seqlogo {
-    my $nt_vectors = shift;
-
+    my ( $nt_vectors, $base_name, $filetype ) = @_;
 
     my $build_pwm = <<EOF;
 # Adapted from http://davetang.org/muse/2013/01/30/sequence-logos-with-r/
@@ -81,9 +71,6 @@ proportion <- function(x){
 pwm <- apply(df, 1, proportion)
 pwm <- makePWM(pwm)
 EOF
-
-    my ($base_name) = $fasta_file =~ m|([^/]+).fa(?:sta)?$|i;
-    my $filetype = "pdf";
 
     my $write_logo = <<EOF;
 $filetype("$base_name.$filetype")
