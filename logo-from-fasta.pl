@@ -44,20 +44,25 @@ sub get_nt_freqs {
 
 p $nt_freqs;
 
-my @r_cmd;
-for my $nt (qw( A C G T )) {
-    my @freqs
-        = map { $$nt_freqs{$nt}{$_} } sort { $a <=> $b } keys $$nt_freqs{$nt};
-    push @r_cmd, "$nt <- c(", join( ", ", @freqs), ")\n";
-}
-print @r_cmd;
+my $nt_vectors = build_nt_vectors($nt_freqs);
 
+sub build_nt_vectors {
+    my @nt_vectors;
+    for my $nt (qw( A C G T )) {
+        my @freqs
+            = map { $$nt_freqs{$nt}{$_} } sort { $a <=> $b } keys $$nt_freqs{$nt};
+        push @nt_vectors, "$nt <- c(", join( ", ", @freqs), ")\n";
+    }
+    return \@nt_vectors;
+}
+
+print @$nt_vectors;
 
 my $build_pwm = <<EOF;
 # Adapted from http://davetang.org/muse/2013/01/30/sequence-logos-with-r/
 
 library(seqLogo)
-@r_cmd
+@$nt_vectors
 df <- data.frame(A,C,G,T)
 
 #define function that divides the frequency by the row sum i.e. proportions
