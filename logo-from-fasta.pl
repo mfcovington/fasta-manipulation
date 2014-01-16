@@ -14,6 +14,7 @@ use Statistics::R;
 #TODO: Add options for png, ic.scale = FALSE, xaxis = FALSE, and width/height
 #TODO: Fill in missing values with 0
 #TODO: Verify that all sequences are equal length
+#TODO: Make 'Output Frequency Summary' optional
 
 my $base_dir = "/Users/mfc/git.repos/extract-seq-flanking-read/runs/out";
 my $fasta_file = $ARGV[0] || "$base_dir/subset.200.fa";
@@ -73,8 +74,13 @@ proportion <- function(x){
 }
 
 #create position weight matrix
-pwm <- apply(df, 1, proportion)
-pwm <- makePWM(pwm)
+props <- apply(df, 1, proportion)
+pwm <- makePWM(props)
+EOF
+
+    my $write_summary = <<EOF;
+colnames(props) <- -ncol(props):-1
+write.table(props, "$base_name.txt", quote = F, sep = "\t", col.names=NA)
 EOF
 
     my $write_logo = <<EOF;
@@ -85,6 +91,7 @@ EOF
 
     my $R = Statistics::R->new();
     $R->run($build_pwm);
+    $R->run($write_summary);
     $R->run($write_logo);
     $R->stop();
 }
