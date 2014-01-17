@@ -9,18 +9,28 @@ use warnings;
 use autodie;
 use feature 'say';
 use Statistics::R;
+use Getopt::Long;
 
-#TODO: GetOptions
-#TODO: Add options for png, ic.scale = FALSE, xaxis = FALSE, and width/height
 #TODO: Fill in missing values with 0
 #TODO: Verify that all sequences are equal length
-#TODO: Make 'Output Frequency Summary' optional
 
 my $base_dir = "/Users/mfc/git.repos/extract-seq-flanking-read/runs/out";
-my $fasta_file = $ARGV[0] || "$base_dir/subset.200.fa";
+my $fasta_file = "$base_dir/subset.200.fa";
 
+my ( $plot_only, $summary_only, $freq_scale, $no_xaxis, $width, $height );
 my ($base_name) = $fasta_file =~ m|([^/]+).fa(?:sta)?$|i;
 my $filetype = "pdf";
+
+my $options = GetOptions(
+    "fasta_file=s" => \$fasta_file,
+    "filetype=s"   => \$filetype,
+    "plot_only"    => \$plot_only,
+    "summary_only" => \$summary_only,
+    "freq_scale"   => \$freq_scale,
+    "no_xaxis"     => \$no_xaxis,
+    "width=f"      => \$width,
+    "height=f"     => \$height,
+);
 
 my $nt_freqs   = get_nt_freqs($fasta_file);
 my $nt_vectors = build_nt_vectors($nt_freqs);
@@ -83,15 +93,23 @@ colnames(props) <- -ncol(props):-1
 write.table(props, "$base_name.txt", quote = F, sep = "\t", col.names=NA)
 EOF
 
+    my $out_params = "";
+    $out_params .= "width = $width, "   if $width;
+    $out_params .= "height = $height, " if $height;
+
+    my $seqlogo_params = "";
+    $seqlogo_params .= "ic.scale = FALSE, " if $freq_scale;
+    $seqlogo_params .= "xaxis = FALSE, "    if $no_xaxis;
+
     my $write_logo = <<EOF;
-$filetype("$base_name.$filetype")
-seqLogo(pwm)
+$filetype("$base_name.$filetype", $out_params)
+seqLogo(pwm, $seqlogo_params)
 dev.off()
 EOF
 
     my $R = Statistics::R->new();
     $R->run($build_pwm);
-    $R->run($write_summary);
-    $R->run($write_logo);
+    $R->run($write_summary) unless $plot_only;
+    $R->run($write_logo) unless $summary_only;
     $R->stop();
 }
