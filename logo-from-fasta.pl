@@ -14,12 +14,10 @@ use Getopt::Long;
 #TODO: Fill in missing values with 0
 #TODO: Verify that all sequences are equal length
 
-my $base_dir = "/Users/mfc/git.repos/extract-seq-flanking-read/runs/out";
-my $fasta_file = "$base_dir/subset.200.fa";
-
 my ( $plot_only, $summary_only, $freq_scale, $no_xaxis, $width, $height );
-my ($base_name) = $fasta_file =~ m|([^/]+).fa(?:sta)?$|i;
 my $filetype = "pdf";
+my $fasta_file
+    = "/Users/mfc/git.repos/extract-seq-flanking-read/runs/out/subset.200.fa";
 
 my $options = GetOptions(
     "fasta_file=s" => \$fasta_file,
@@ -34,7 +32,7 @@ my $options = GetOptions(
 
 my $nt_freqs   = get_nt_freqs($fasta_file);
 my $nt_vectors = build_nt_vectors($nt_freqs);
-seqlogo( $nt_vectors, $base_name, $filetype );
+seqlogo( $nt_vectors, $fasta_file, $filetype );
 
 exit;
 
@@ -60,15 +58,17 @@ sub get_nt_freqs {
 sub build_nt_vectors {
     my @nt_vectors;
     for my $nt (qw( A C G T )) {
-        my @freqs
-            = map { $$nt_freqs{$nt}{$_} } sort { $a <=> $b } keys $$nt_freqs{$nt};
-        push @nt_vectors, "$nt <- c(", join( ", ", @freqs), ")\n";
+        my @freqs = map { $$nt_freqs{$nt}{$_} }
+            sort { $a <=> $b } keys $$nt_freqs{$nt};
+        push @nt_vectors, "$nt <- c(", join( ", ", @freqs ), ")\n";
     }
     return \@nt_vectors;
 }
 
 sub seqlogo {
-    my ( $nt_vectors, $base_name, $filetype ) = @_;
+    my ( $nt_vectors, $fasta_file, $filetype ) = @_;
+
+    my ($base_name) = $fasta_file =~ m|([^/]+).fa(?:sta)?$|i;
 
     my $build_pwm = <<EOF;
 # Adapted from http://davetang.org/muse/2013/01/30/sequence-logos-with-r/
@@ -110,6 +110,6 @@ EOF
     my $R = Statistics::R->new();
     $R->run($build_pwm);
     $R->run($write_summary) unless $plot_only;
-    $R->run($write_logo) unless $summary_only;
+    $R->run($write_logo)    unless $summary_only;
     $R->stop();
 }
