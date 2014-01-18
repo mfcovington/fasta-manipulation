@@ -9,21 +9,30 @@ use warnings;
 use autodie;
 use feature 'say';
 use Statistics::R;
+use Getopt::Long;
 
-#TODO: GetOptions
-#TODO: Add options for png, ic.scale = FALSE, xaxis = FALSE, and width/height
 #TODO: Fill in missing values with 0
 #TODO: Verify that all sequences are equal length
 
-my $base_dir = "/Users/mfc/git.repos/extract-seq-flanking-read/runs/out";
-my $fasta_file = $ARGV[0] || "$base_dir/subset.200.fa";
-
-my ($base_name) = $fasta_file =~ m|([^/]+).fa(?:sta)?$|i;
+my ( $plot_only, $summary_only, $freq_scale, $no_xaxis, $width, $height );
 my $filetype = "pdf";
+my $fasta_file
+    = "/Users/mfc/git.repos/extract-seq-flanking-read/runs/out/subset.200.fa";
+
+my $options = GetOptions(
+    "fasta_file=s" => \$fasta_file,
+    "filetype=s"   => \$filetype,
+    "plot_only"    => \$plot_only,
+    "summary_only" => \$summary_only,
+    "freq_scale"   => \$freq_scale,
+    "no_xaxis"     => \$no_xaxis,
+    "width=f"      => \$width,
+    "height=f"     => \$height,
+);
 
 my $nt_freqs   = get_nt_freqs($fasta_file);
 my $nt_vectors = build_nt_vectors($nt_freqs);
-seqlogo( $nt_vectors, $base_name, $filetype );
+seqlogo( $nt_vectors, $fasta_file, $filetype );
 
 exit;
 
@@ -49,15 +58,17 @@ sub get_nt_freqs {
 sub build_nt_vectors {
     my @nt_vectors;
     for my $nt (qw( A C G T )) {
-        my @freqs
-            = map { $$nt_freqs{$nt}{$_} } sort { $a <=> $b } keys $$nt_freqs{$nt};
-        push @nt_vectors, "$nt <- c(", join( ", ", @freqs), ")\n";
+        my @freqs = map { $$nt_freqs{$nt}{$_} }
+            sort { $a <=> $b } keys $$nt_freqs{$nt};
+        push @nt_vectors, "$nt <- c(", join( ", ", @freqs ), ")\n";
     }
     return \@nt_vectors;
 }
 
 sub seqlogo {
-    my ( $nt_vectors, $base_name, $filetype ) = @_;
+    my ( $nt_vectors, $fasta_file, $filetype ) = @_;
+
+    my ($base_name) = $fasta_file =~ m|(.+)\.fa(?:sta)?$|i;
 
     my $build_pwm = <<EOF;
 # Adapted from http://davetang.org/muse/2013/01/30/sequence-logos-with-r/
@@ -73,18 +84,32 @@ proportion <- function(x){
 }
 
 #create position weight matrix
-pwm <- apply(df, 1, proportion)
-pwm <- makePWM(pwm)
+props <- apply(df, 1, proportion)
+pwm <- makePWM(props)
 EOF
 
+    my $write_summary = <<EOF;
+colnames(props) <- -ncol(props):-1
+write.table(props, "$base_name.txt", quote = F, sep = "\t", col.names=NA)
+EOF
+
+    my $out_params = "";
+    $out_params .= "width = $width, "   if $width;
+    $out_params .= "height = $height, " if $height;
+
+    my $seqlogo_params = "";
+    $seqlogo_params .= "ic.scale = FALSE, " if $freq_scale;
+    $seqlogo_params .= "xaxis = FALSE, "    if $no_xaxis;
+
     my $write_logo = <<EOF;
-$filetype("$base_name.$filetype")
-seqLogo(pwm)
+$filetype("$base_name.$filetype", $out_params)
+seqLogo(pwm, $seqlogo_params)
 dev.off()
 EOF
 
     my $R = Statistics::R->new();
     $R->run($build_pwm);
-    $R->run($write_logo);
+    $R->run($write_summary) unless $plot_only;
+    $R->run($write_logo)    unless $summary_only;
     $R->stop();
 }
