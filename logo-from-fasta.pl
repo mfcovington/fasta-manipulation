@@ -68,7 +68,7 @@ sub build_nt_vectors {
 sub seqlogo {
     my ( $nt_vectors, $fasta_file, $filetype ) = @_;
 
-    my ($base_name) = $fasta_file =~ m|([^/]+).fa(?:sta)?$|i;
+    my ($base_name) = $fasta_file =~ m|(.+)\.fa(?:sta)?$|i;
 
     my $build_pwm = <<EOF;
 # Adapted from http://davetang.org/muse/2013/01/30/sequence-logos-with-r/
