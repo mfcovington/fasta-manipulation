@@ -60,7 +60,7 @@ sub build_nt_vectors {
     my @nt_vectors;
     for my $nt (qw( A C G T )) {
         my @freqs = map { $$nt_freqs{$nt}{$_} }
-            sort { $a <=> $b } keys $$nt_freqs{$nt};
+            sort { $a <=> $b } keys %{ $$nt_freqs{$nt} };
         push @nt_vectors, "$nt <- c(", join( ", ", @freqs ), ")\n";
     }
     return \@nt_vectors;
