@@ -9,13 +9,19 @@ use warnings;
 use Log::Reproducible;
 use autodie;
 use feature 'say';
+use Getopt::Long;
 
 use FindBin;
 use lib "$FindBin::Bin";
 use amino_acid_translation;
 
+my $seq_width = 80;
+
+my $options = GetOptions(
+    "width=i" => \$seq_width,
+);
+
 my $fasta_file = $ARGV[0];
-my $fa_width //= 80;
 my $seqid;
 my $seq;
 
@@ -23,7 +29,7 @@ open my $fasta_fh, "<", $fasta_file;
 while ( my $fa_line = <$fasta_fh>) {
     if ($fa_line =~ /^>/) {
         if ($seq) {
-            say format_seq( $seq, $fa_width );
+            say format_seq( $seq, $seq_width );
             $seq = '';
         }
         print $fa_line;
@@ -35,6 +41,6 @@ while ( my $fa_line = <$fasta_fh>) {
 }
 close $fasta_fh;
 
-say format_seq( $seq, $fa_width );
+say format_seq( $seq, $seq_width );
 
 exit;
