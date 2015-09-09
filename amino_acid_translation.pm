@@ -1,6 +1,29 @@
 use strict;
 use warnings;
 
+sub longest_orf {
+    my $nt_seq = shift;
+
+    my @translations;
+    for my $reading_frame ( 0 .. 2 ) {
+        push @translations, translate( substr $nt_seq, $reading_frame );
+    }
+
+    my @orfs;
+    for my $aa_seq (@translations) {
+        push @orfs, $aa_seq =~ /(M[ACDEFGHIKLMNPQRSTVWYX]*-?)/ig;
+    }
+
+    my @sorted_orfs = reverse sort { length $a <=> length $b } @orfs;
+
+    print
+        "WARNING: Can't distinguish between multiple ORFs of the same length!\n"
+        if scalar @sorted_orfs > 1
+        && length $sorted_orfs[0] == length $sorted_orfs[1];
+
+    return $sorted_orfs[0];
+}
+
 sub translate {
     my $nt_seq = shift;
     my $codon_table = codon_table();

@@ -18,6 +18,8 @@ use amino_acid_translation;
 die "USAGE: $0 <DNA FASTA input file> <Protein FASTA output file>\n"
     unless scalar @ARGV == 2;
 
+my $simple = 0;
+
 my ( $cds_fasta_file, $prot_fasta_file ) = @ARGV;
 my $fa_width = 80;
 
@@ -32,7 +34,8 @@ while ( my $fa_line = <$cds_fasta_fh> ) {
     if ( $fa_line =~ /^>/ ) {
         if ($cds_seq) {
             say $prot_fasta_fh $_
-                for unpack "(A$fa_width)*", translate($cds_seq);
+                for unpack "(A$fa_width)*",
+                $simple ? translate($cds_seq) : longest_orf($cds_seq);
             $cds_seq = '';
         }
         print $prot_fasta_fh $fa_line;
@@ -42,7 +45,9 @@ while ( my $fa_line = <$cds_fasta_fh> ) {
         $cds_seq .= $fa_line;
     }
 }
-say $prot_fasta_fh $_ for unpack "(A$fa_width)*", translate($cds_seq);
+say $prot_fasta_fh $_
+    for unpack "(A$fa_width)*",
+    $simple ? translate($cds_seq) : longest_orf($cds_seq);
 
 close $cds_fasta_fh;
 close $prot_fasta_fh;
