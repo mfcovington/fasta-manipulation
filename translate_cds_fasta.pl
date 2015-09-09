@@ -10,15 +10,20 @@ use autodie;
 use feature 'say';
 use File::Basename;
 use File::Path 'make_path';
+use Getopt::Long;
 
 use FindBin;
 use lib "$FindBin::Bin";
 use amino_acid_translation;
 
+my $simple;
+
+my $options = GetOptions(
+    "simple" => \$simple,
+);
+
 die "USAGE: $0 <DNA FASTA input file> <Protein FASTA output file>\n"
     unless scalar @ARGV == 2;
-
-my $simple = 0;
 
 my ( $cds_fasta_file, $prot_fasta_file ) = @ARGV;
 my $fa_width = 80;
