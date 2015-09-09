@@ -1,6 +1,11 @@
 use strict;
 use warnings;
 
+sub format_seq {
+    my ( $seq, $width ) = @_;
+    return join "\n", unpack "(A$width)*", $seq;
+}
+
 sub longest_orf {
     my ( $nt_seq, $ss ) = @_;
 
