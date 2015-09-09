@@ -13,7 +13,7 @@ use Getopt::Long;
 
 use FindBin;
 use lib "$FindBin::Bin";
-use amino_acid_translation;
+use fasta_tools;
 
 my $seq_width = 80;
 
