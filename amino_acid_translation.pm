@@ -2,11 +2,14 @@ use strict;
 use warnings;
 
 sub longest_orf {
-    my $nt_seq = shift;
+    my ( $nt_seq, $ss ) = @_;
 
     my @translations;
     for my $reading_frame ( 0 .. 2 ) {
         push @translations, translate( substr $nt_seq, $reading_frame );
+        push @translations,
+            translate( substr $nt_seq, reverse_complement($reading_frame) )
+            unless $ss;
     }
 
     my @orfs;
@@ -22,6 +25,15 @@ sub longest_orf {
         && length $sorted_orfs[0] == length $sorted_orfs[1];
 
     return $sorted_orfs[0];
+}
+
+sub reverse_complement {
+    my $nt_seq = shift;
+
+    $nt_seq = reverse $nt_seq;
+    $nt_seq =~ tr/ACGTUacgtu/TGCAAtgcaa/;
+
+    return $nt_seq;
 }
 
 sub translate {

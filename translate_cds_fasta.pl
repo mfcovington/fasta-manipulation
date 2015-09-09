@@ -16,10 +16,11 @@ use FindBin;
 use lib "$FindBin::Bin";
 use amino_acid_translation;
 
-my $simple;
+my ( $simple, $ss );
 
 my $options = GetOptions(
     "simple" => \$simple,
+    "ss"     => \$ss,
 );
 
 die "USAGE: $0 <DNA FASTA input file> <Protein FASTA output file>\n"
@@ -40,7 +41,7 @@ while ( my $fa_line = <$cds_fasta_fh> ) {
         if ($cds_seq) {
             say $prot_fasta_fh $_
                 for unpack "(A$fa_width)*",
-                $simple ? translate($cds_seq) : longest_orf($cds_seq);
+                $simple ? translate($cds_seq) : longest_orf( $cds_seq, $ss );
             $cds_seq = '';
         }
         print $prot_fasta_fh $fa_line;
@@ -52,7 +53,7 @@ while ( my $fa_line = <$cds_fasta_fh> ) {
 }
 say $prot_fasta_fh $_
     for unpack "(A$fa_width)*",
-    $simple ? translate($cds_seq) : longest_orf($cds_seq);
+    $simple ? translate($cds_seq) : longest_orf( $cds_seq, $ss );
 
 close $cds_fasta_fh;
 close $prot_fasta_fh;
