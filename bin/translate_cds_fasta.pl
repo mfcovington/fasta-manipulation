@@ -13,7 +13,7 @@ use File::Path 'make_path';
 use Getopt::Long;
 
 use FindBin;
-use lib "$FindBin::Bin";
+use lib "$FindBin::Bin/../lib";
 use fasta_tools;
 
 my ( $simple, $ss );

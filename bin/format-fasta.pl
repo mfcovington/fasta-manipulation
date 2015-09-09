@@ -12,7 +12,7 @@ use feature 'say';
 use Getopt::Long;
 
 use FindBin;
-use lib "$FindBin::Bin";
+use lib "$FindBin::Bin/../lib";
 use fasta_tools;
 
 my $seq_width = 80;
