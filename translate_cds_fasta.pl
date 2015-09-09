@@ -28,12 +28,11 @@ open my $cds_fasta_fh,  "<", $cds_fasta_file;
 open my $prot_fasta_fh, ">", $prot_fasta_file;
 
 my $cds_seq;
-my $prot_seq;
 while ( my $fa_line = <$cds_fasta_fh> ) {
     if ( $fa_line =~ /^>/ ) {
         if ($cds_seq) {
-            $prot_seq = translate($cds_seq);
-            say $prot_fasta_fh $_ for unpack "(A$fa_width)*", $prot_seq;
+            say $prot_fasta_fh $_
+                for unpack "(A$fa_width)*", translate($cds_seq);
             $cds_seq = '';
         }
         print $prot_fasta_fh $fa_line;
@@ -43,7 +42,7 @@ while ( my $fa_line = <$cds_fasta_fh> ) {
         $cds_seq .= $fa_line;
     }
 }
-say $prot_fasta_fh $_ for unpack "(A$fa_width)*", $prot_seq;
+say $prot_fasta_fh $_ for unpack "(A$fa_width)*", translate($cds_seq);
 
 close $cds_fasta_fh;
 close $prot_fasta_fh;
