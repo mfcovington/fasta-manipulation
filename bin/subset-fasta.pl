@@ -11,12 +11,9 @@ use autodie;
 use v5.10;
 use File::Basename;
 
-my $usage = <<EOF;
-USAGE: $0 SEQUENCE_FILE FASTA_FILE [CUSTOM_DELIMITER]
-EOF
 
 my $argv_count = scalar @ARGV;
-die $usage unless $argv_count == 2 || $argv_count == 3;
+die usage() unless $argv_count == 2 || $argv_count == 3;
 
 my $gene_list = $ARGV[0];
 my $fasta     = $ARGV[1];
@@ -43,3 +40,22 @@ close $fa_fh;
 close $fa_out_fh;
 
 exit;
+
+
+sub usage {
+    return <<EOF;
+
+  USAGE
+    $0 [options] <FILE W/ SEQUENCE IDS OF INTEREST> <FASTA FILE>
+
+  DESCRIPTION
+    Extracts FASTA-formatted sequences for specified sequence IDs
+
+  OUTPUT
+    An output file in FASTA format is written to the directory that contains the
+    sequence ID file.
+
+    The name of the output file has the format 'ID_FILE.FASTA_FILE.fa'.
+
+EOF
+}
